@@ -1,0 +1,6 @@
+﻿*.o
+*.obj
+*.exe
+lab3_app
+lab3_tests
+output/
