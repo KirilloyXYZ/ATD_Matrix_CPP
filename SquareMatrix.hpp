@@ -13,6 +13,7 @@ public:
     explicit SquareMatrix(int size, const T& defaultValue = T());
     SquareMatrix(const T* items, int size);
     SquareMatrix(const SquareMatrix<T>& other);
+    SquareMatrix<T>& operator=(const SquareMatrix<T>& other);
 
     int GetSize() const;
 
@@ -32,6 +33,13 @@ SquareMatrix<T>::SquareMatrix(const T* items, int size) : RectangularMatrix<T>(i
 
 template<typename T>
 SquareMatrix<T>::SquareMatrix(const SquareMatrix<T>& other) : RectangularMatrix<T>(other) { }
+
+template<typename T>
+SquareMatrix<T>& SquareMatrix<T>::operator=(const SquareMatrix<T>& other)
+{
+    RectangularMatrix<T>::operator=(other);
+    return *this;
+}
 
 template<typename T>
 int SquareMatrix<T>::GetSize() const
