@@ -20,7 +20,6 @@ protected:
     void SetInternal(int index, const T& item);
 
     virtual ArraySequence<T>* CreateEmpty() const = 0;
-    virtual ArraySequence<T>* CreateFromArray(const T* items, int count) const = 0;
 
     virtual ArraySequence<T>* Clone() const = 0;
     virtual ArraySequence<T>* Instance() = 0;

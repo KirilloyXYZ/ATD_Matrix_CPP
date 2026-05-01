@@ -21,7 +21,6 @@ private:
     void CheckColumnIndex(int column) const;
     void CheckIndex(int row, int column) const;
     void CheckSameSize(const Matrix<T>& other) const;
-    MutableArraySequence<T> CreateFilledRow(int columns, const T& value) const;
 
 public:
     RectangularMatrix();
@@ -64,7 +63,15 @@ RectangularMatrix<T>::RectangularMatrix(int rows, int columns, const T& defaultV
 
     for (int i = 0; i < rows; ++i)
     {
-        this->rows.Append(CreateFilledRow(columns, defaultValue));
+
+
+        this->rows.Append(MutableArraySequence<T>());
+        MutableArraySequence<T>& row = this->rows.GetMutable(i);
+
+        for (int j = 0; j < columns; ++j)
+        {
+            row.Append(defaultValue);
+        }
     }
 }
 
@@ -84,14 +91,15 @@ RectangularMatrix<T>::RectangularMatrix(const T* items, int rows, int columns)
 
     for (int i = 0; i < rows; ++i)
     {
-        MutableArraySequence<T> row;
+
+
+        this->rows.Append(MutableArraySequence<T>());
+        MutableArraySequence<T>& row = this->rows.GetMutable(i);
 
         for (int j = 0; j < columns; ++j)
         {
             row.Append(items[i * columns + j]);
         }
-
-        this->rows.Append(row);
     }
 }
 
@@ -157,19 +165,6 @@ void RectangularMatrix<T>::CheckSameSize(const Matrix<T>& other) const
     {
         throw std::invalid_argument("RectangularMatrix::Add: matrices must have equal dimensions");
     }
-}
-
-template<typename T>
-MutableArraySequence<T> RectangularMatrix<T>::CreateFilledRow(int columns, const T& value) const
-{
-    MutableArraySequence<T> row;
-
-    for (int j = 0; j < columns; ++j)
-    {
-        row.Append(value);
-    }
-
-    return row;
 }
 
 template<typename T>

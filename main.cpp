@@ -7,6 +7,7 @@
 #include "Matrix.hpp"
 #include "RectangularMatrix.hpp"
 #include "SquareMatrix.hpp"
+#include "LinearSystemSolvers.hpp"
 
 void ClearInput()
 {
@@ -29,6 +30,23 @@ int ReadInt(const std::string& prompt)
         }
 
         std::cout << "Invalid integer. Try again.\n";
+        ClearInput();
+    }
+}
+
+double ReadDouble(const std::string& prompt)
+{
+    double value;
+
+    while (true)
+    {
+        std::cout << prompt;
+        if (std::cin >> value)
+        {
+            return value;
+        }
+
+        std::cout << "Invalid number. Try again.\n";
         ClearInput();
     }
 }
@@ -71,9 +89,10 @@ void ReplaceMatrix(Matrix<int>*& target, Matrix<int>* result)
     }
 }
 
-void FillGeneratedValues(Matrix<int>& matrix, int startValue, int step)
+template<typename T>
+void FillGeneratedValues(Matrix<T>& matrix, T startValue, T step)
 {
-    int currentValue = startValue;
+    T currentValue = startValue;
 
     for (int i = 0; i < matrix.GetRowCount(); ++i)
     {
@@ -82,6 +101,45 @@ void FillGeneratedValues(Matrix<int>& matrix, int startValue, int step)
             matrix.Set(i, j, currentValue);
             currentValue += step;
         }
+    }
+}
+
+void PrintDoubleVector(const std::string& name, const Sequence<double>& vector)
+{
+    std::cout << name << ": [";
+
+    for (int i = 0; i < vector.GetLength(); ++i)
+    {
+        if (i > 0)
+        {
+            std::cout << ", ";
+        }
+
+        std::cout << vector.Get(i);
+    }
+
+    std::cout << "]\n";
+}
+
+void PrintDoubleMatrix(const std::string& name, const Matrix<double>& matrix)
+{
+    std::cout << name << " (" << matrix.GetRowCount() << " x " << matrix.GetColumnCount() << "):\n";
+
+    for (int i = 0; i < matrix.GetRowCount(); ++i)
+    {
+        std::cout << "  [";
+
+        for (int j = 0; j < matrix.GetColumnCount(); ++j)
+        {
+            if (j > 0)
+            {
+                std::cout << ", ";
+            }
+
+            std::cout << matrix.Get(i, j);
+        }
+
+        std::cout << "]\n";
     }
 }
 
@@ -165,7 +223,8 @@ void PrintMatrix(const std::string& name, const Matrix<int>* matrix)
         return;
     }
 
-    const SquareMatrix<int>* squareMatrix = dynamic_cast<const SquareMatrix<int>*>(matrix);
+    const SquareMatrix<int>* squareMatrix = dynamic_cast<const SquareMatrix<int>*>(matrix); // а объект, на который указывает matrix, реально является SquareMatrix<int>? или это прямоугольная ?
+
 
     if (squareMatrix != nullptr)
     {
@@ -217,31 +276,29 @@ void RunPerformanceDemo()
     FillGeneratedValues(first, 1, 1);
     FillGeneratedValues(second, 2, 1);
 
-    using clock_type = std::chrono::steady_clock;
-
-    auto addStart = clock_type::now();
+    auto addStart = std::chrono::steady_clock::now();
     for (int i = 0; i < repeats; ++i)
     {
         Matrix<int>* result = first.Add(second);
         delete result;
     }
-    auto addFinish = clock_type::now();
+    auto addFinish = std::chrono::steady_clock::now();
 
-    auto scalarStart = clock_type::now();
+    auto scalarStart = std::chrono::steady_clock::now();
     for (int i = 0; i < repeats; ++i)
     {
         Matrix<int>* result = first.MultiplyByScalar(2);
         delete result;
     }
-    auto scalarFinish = clock_type::now();
+    auto scalarFinish = std::chrono::steady_clock::now();
 
     double lastNorm = 0.0;
-    auto normStart = clock_type::now();
+    auto normStart = std::chrono::steady_clock::now();
     for (int i = 0; i < repeats; ++i)
     {
         lastNorm = first.Norm();
     }
-    auto normFinish = clock_type::now();
+    auto normFinish = std::chrono::steady_clock::now();
 
     double addMs = std::chrono::duration<double, std::milli>(addFinish - addStart).count();
     double scalarMs = std::chrono::duration<double, std::milli>(scalarFinish - scalarStart).count();
@@ -253,6 +310,127 @@ void RunPerformanceDemo()
     std::cout << "  Scalar multiply average time: " << (scalarMs / repeats) << " ms\n";
     std::cout << "  Norm average time: " << (normMs / repeats) << " ms\n";
     std::cout << "  Last norm value: " << lastNorm << "\n";
+}
+
+void PrintSolverReport(const std::string& name, const Matrix<double>& coefficients, const Sequence<double>& rightSide, const Sequence<double>& exactSolution, const Sequence<double>& solution)
+
+{
+    std::cout << name
+              << " residual = " << ComputeResidualNorm(coefficients, solution, rightSide)
+              << ", relative error = " << ComputeRelativeError(solution, exactSolution)
+              << "\n";
+}
+
+void PrintSolverResidual(const std::string& name, const Matrix<double>& coefficients, const Sequence<double>& rightSide, const Sequence<double>& solution)
+{
+    std::cout << name
+              << " residual = " << ComputeResidualNorm(coefficients, solution, rightSide)
+              << "\n";
+}
+
+void PrintManualSolverResult(const std::string& name, MutableArraySequence<double> (*solver)(const Matrix<double>&, const Sequence<double>&), const Matrix<double>& coefficients, const Sequence<double>& rightSide)
+{
+    try
+    {
+        MutableArraySequence<double> solution = solver(coefficients, rightSide);
+        PrintDoubleVector(name, solution);
+        PrintSolverResidual(name, coefficients, rightSide, solution);
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << name << " failed: " << ex.what() << "\n";
+    }
+}
+
+void RunLinearSystemDemo()
+{
+    int size = ReadInt("System size: ");
+
+    if (size <= 0)
+    {
+        throw std::invalid_argument("System size must be positive");
+    }
+
+    RectangularMatrix<double> coefficients(size, size, 0.0);
+    FillGeneratedValues(coefficients, 1.0, 1.0);
+
+    for (int i = 0; i < size; ++i)
+    {
+        coefficients.Set(i, i, coefficients.Get(i, i) + size * size);
+    }
+
+    MutableArraySequence<double> exactSolution = CreateOnesVector(size);
+    MutableArraySequence<double> rightSide = MultiplyMatrixByVector(coefficients, exactSolution);
+
+    MutableArraySequence<double> noPivotSolution = SolveGaussNoPivot(coefficients, rightSide);
+    MutableArraySequence<double> pivotSolution = SolveGaussPartialPivot(coefficients, rightSide);
+    MutableArraySequence<double> luSolution = SolveLU(coefficients, rightSide);
+
+    std::cout << std::fixed << std::setprecision(6);
+    std::cout << "Generated diagonally dominant system\n";
+    std::cout << "Solving equation: A * x = b\n";
+
+    if (size <= 10)
+    {
+        PrintDoubleMatrix("Matrix A", coefficients);
+        PrintDoubleVector("Right side b", rightSide);
+        PrintDoubleVector("Exact solution x", exactSolution);
+    }
+    else
+    {
+        std::cout << "Matrix A is " << size << " x " << size << " and is not printed.\n";
+    }
+
+    std::cout << "\nSolutions\n";
+    PrintDoubleVector("Gauss without pivot", noPivotSolution);
+    PrintDoubleVector("Gauss with partial pivot", pivotSolution);
+    PrintDoubleVector("LU decomposition", luSolution);
+
+    std::cout << "\nQuality check\n";
+    PrintSolverReport("Gauss no pivot", coefficients, rightSide, exactSolution, noPivotSolution);
+    PrintSolverReport("Gauss pivot", coefficients, rightSide, exactSolution, pivotSolution);
+    PrintSolverReport("LU", coefficients, rightSide, exactSolution, luSolution);
+    std::cout << std::defaultfloat << std::setprecision(6);
+}
+
+void RunManualLinearSystemDemo()
+{
+    int size = ReadInt("System size: ");
+
+    if (size <= 0)
+    {
+        throw std::invalid_argument("System size must be positive");
+    }
+
+    RectangularMatrix<double> coefficients(size, size, 0.0);
+    MutableArraySequence<double> rightSide;
+
+    std::cout << "Enter coefficients of matrix A\n";
+    for (int i = 0; i < size; ++i)
+    {
+        for (int j = 0; j < size; ++j)
+        {
+            coefficients.Set(i, j, ReadDouble("A[" + std::to_string(i) + "][" + std::to_string(j) + "]: "));
+        }
+    }
+
+    std::cout << "Enter right side vector b\n";
+    for (int i = 0; i < size; ++i)
+    {
+        rightSide.Append(ReadDouble("b[" + std::to_string(i) + "]: "));
+    }
+
+    std::cout << std::fixed << std::setprecision(6);
+    std::cout << "Manual linear system\n";
+    std::cout << "Solving equation: A * x = b\n";
+    PrintDoubleMatrix("Matrix A", coefficients);
+    PrintDoubleVector("Right side b", rightSide);
+
+    std::cout << "\nSolutions\n";
+    PrintManualSolverResult("Gauss without pivot", SolveGaussNoPivot, coefficients, rightSide);
+    PrintManualSolverResult("Gauss with partial pivot", SolveGaussPartialPivot, coefficients, rightSide);
+    PrintManualSolverResult("LU decomposition", SolveLU, coefficients, rightSide);
+    std::cout << std::defaultfloat << std::setprecision(6);
 }
 
 void PrintMenu()
@@ -274,6 +452,8 @@ void PrintMenu()
     std::cout << "14. Multiply column by scalar\n";
     std::cout << "15. Add one column to another with coefficient\n";
     std::cout << "16. Run performance demo\n";
+    std::cout << "17. Run linear system demo (Gauss and LU)\n";
+    std::cout << "18. Solve manual linear system\n";
     std::cout << "0. Exit\n";
 }
 
@@ -446,6 +626,18 @@ int main()
                 case 16:
                 {
                     RunPerformanceDemo();
+                    break;
+                }
+
+                case 17:
+                {
+                    RunLinearSystemDemo();
+                    break;
+                }
+
+                case 18:
+                {
+                    RunManualLinearSystemDemo();
                     break;
                 }
 

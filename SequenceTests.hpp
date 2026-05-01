@@ -1,5 +1,5 @@
-#ifndef SEQUENCETESTS_HPP
-#define SEQUENCETESTS_HPP
+#ifndef LAB3_SEQUENCETESTS_HPP
+#define LAB3_SEQUENCETESTS_HPP
 
 #include <cassert>
 

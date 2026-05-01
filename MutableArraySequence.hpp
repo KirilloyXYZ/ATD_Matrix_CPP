@@ -9,7 +9,6 @@ class MutableArraySequence : public ArraySequence<T>
 protected:
 
     ArraySequence<T>* CreateEmpty() const override;
-    ArraySequence<T>* CreateFromArray(const T* items, int count) const override;
 
     ArraySequence<T>* Clone() const override;
     ArraySequence<T>* Instance() override;
@@ -30,12 +29,6 @@ template<typename T>
 ArraySequence<T>* MutableArraySequence<T>::CreateEmpty() const
 {
     return new MutableArraySequence<T>();
-}
-
-template<typename T>
-ArraySequence<T>* MutableArraySequence<T>::CreateFromArray(const T* items, int count) const
-{
-    return new MutableArraySequence<T>(items, count);
 }
 
 template<typename T>

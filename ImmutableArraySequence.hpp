@@ -9,7 +9,6 @@ class ImmutableArraySequence : public ArraySequence<T>
 protected:
 
     ArraySequence<T>* CreateEmpty() const override;
-    ArraySequence<T>* CreateFromArray(const T* items, int count) const override;
 
     ArraySequence<T>* Clone() const override;
     ArraySequence<T>* Instance() override;
@@ -27,12 +26,6 @@ template<typename T>
 ArraySequence<T>* ImmutableArraySequence<T>::CreateEmpty() const
 {
     return new ImmutableArraySequence<T>();
-}
-
-template<typename T>
-ArraySequence<T>* ImmutableArraySequence<T>::CreateFromArray(const T* items, int count) const
-{
-    return new ImmutableArraySequence<T>(items, count);
 }
 
 template<typename T>

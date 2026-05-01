@@ -70,7 +70,7 @@ int BitSequence::ByteCount(int count)
         return 0;
     }
 
-    return (count + BITS_PER_BYTE - 1) / BITS_PER_BYTE; // подсчет байтов 
+    return (count + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
 }
 
 void BitSequence::CheckIndex(int index) const
@@ -96,8 +96,8 @@ void BitSequence::SetBit(int index, bool value)
 {
     CheckIndex(index);
 
-    int byteIndex = index / BITS_PER_BYTE; // в каком байте нужный бит
-    int bitOffset = index % BITS_PER_BYTE; // Вычисление позиции бита внутри байта
+    int byteIndex = index / BITS_PER_BYTE;
+    int bitOffset = index % BITS_PER_BYTE;
     std::uint8_t mask = static_cast<std::uint8_t>(1u << bitOffset);
 
     std::uint8_t byteValue = bytes.Get(byteIndex);

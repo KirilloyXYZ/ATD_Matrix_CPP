@@ -6,6 +6,7 @@
 #include "SequenceTests.hpp"
 #include "BitTests.hpp"
 #include "MatrixTests.hpp"
+#include "LinearSystemTests.hpp"
 
 void TestDynamicArray()
 {
@@ -217,6 +218,11 @@ int main()
     TestRectangularMatrixRowAndColumnOperations();
     TestSquareMatrix();
     TestMatrixErrors();
+
+    TestGaussSolvers();
+    TestGaussPartialPivot();
+    TestLUDecompositionAndSolve();
+    TestLinearSystemErrors();
 
     std::cout << "All tests passed!\n";
     return 0;

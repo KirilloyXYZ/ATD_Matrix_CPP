@@ -1,31 +1,27 @@
-APP_NAME = lab3_app
-TEST_NAME = lab3_tests
+all: lab3_app
 
-.PHONY: all tests run run_tests clean
+lab3_app: main.o LinearSystemSolvers.o
+	g++ main.o LinearSystemSolvers.o -o lab3_app
 
-all: $(APP_NAME)
-
-$(APP_NAME): main.o
-	g++ main.o -o $(APP_NAME)
-
-main.o: main.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp
+main.o: main.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp LinearSystemSolvers.hpp
 	g++ -c main.cpp
 
-tests: $(TEST_NAME)
+tests: tests.o LinearSystemSolvers.o
+	g++ tests.o LinearSystemSolvers.o -o tests
 
-$(TEST_NAME): tests.o
-	g++ tests.o -o $(TEST_NAME)
-
-tests.o: tests.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Bit.hpp BitSequence.hpp SequenceTests.hpp BitTests.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp MatrixTests.hpp
+tests.o: tests.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Bit.hpp BitSequence.hpp SequenceTests.hpp BitTests.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp MatrixTests.hpp LinearSystemSolvers.hpp LinearSystemTests.hpp
 	g++ -c tests.cpp
 
-run: $(APP_NAME)
-	./$(APP_NAME)
+LinearSystemSolvers.o: LinearSystemSolvers.cpp LinearSystemSolvers.hpp Exceptions.h DynamicArray.hpp Sequence.hpp ArraySequence.hpp MutableArraySequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp
+	g++ -c LinearSystemSolvers.cpp
 
-run_tests: $(TEST_NAME)
-	./$(TEST_NAME)
+run: lab3_app
+	./lab3_app
+
+run_tests: tests
+	./tests
 
 clean:
 	del /Q *.o 2>NUL
-	del /Q $(APP_NAME).exe 2>NUL
-	del /Q $(TEST_NAME).exe 2>NUL
+	del /Q lab3_app.exe 2>NUL
+	del /Q tests.exe 2>NUL
