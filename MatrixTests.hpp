@@ -6,6 +6,8 @@ void TestRectangularMatrixCopy();
 void TestRectangularMatrixOperations();
 void TestRectangularMatrixRowAndColumnOperations();
 void TestSquareMatrix();
+void TestDiagonalMatrix();
+void TestTriangularMatrix();
 void TestMatrixErrors();
 
 #endif

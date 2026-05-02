@@ -3,7 +3,7 @@ all: lab3_app
 lab3_app: main.o LinearSystemSolvers.o
 	g++ main.o LinearSystemSolvers.o -o lab3_app
 
-main.o: main.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp LinearSystemSolvers.hpp
+main.o: main.cpp Exceptions.h DynamicArray.hpp LinkedList.hpp Sequence.hpp SequenceAlgorithms.hpp ArraySequence.hpp MutableArraySequence.hpp ImmutableArraySequence.hpp ListSequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp DiagonalMatrix.hpp TriangularMatrix.hpp LinearSystemSolvers.hpp
 	g++ -c main.cpp
 
 tests: tests.o SequenceTests.o BitTests.o Bit.o BitSequence.o MatrixTests.o LinearSystemTests.o LinearSystemSolvers.o
@@ -24,7 +24,7 @@ Bit.o: Bit.cpp Bit.hpp
 BitSequence.o: BitSequence.cpp BitSequence.hpp Bit.hpp Exceptions.h DynamicArray.hpp Sequence.hpp
 	g++ -c BitSequence.cpp
 
-MatrixTests.o: MatrixTests.cpp MatrixTests.hpp Exceptions.h DynamicArray.hpp Sequence.hpp ArraySequence.hpp MutableArraySequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp
+MatrixTests.o: MatrixTests.cpp MatrixTests.hpp Exceptions.h DynamicArray.hpp Sequence.hpp ArraySequence.hpp MutableArraySequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp SquareMatrix.hpp DiagonalMatrix.hpp TriangularMatrix.hpp
 	g++ -c MatrixTests.cpp
 
 LinearSystemTests.o: LinearSystemTests.cpp LinearSystemTests.hpp LinearSystemSolvers.hpp Exceptions.h DynamicArray.hpp Sequence.hpp ArraySequence.hpp MutableArraySequence.hpp Matrix.hpp ScalarTraits.hpp RectangularMatrix.hpp

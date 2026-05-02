@@ -7,6 +7,8 @@
 #include "Matrix.hpp"
 #include "RectangularMatrix.hpp"
 #include "SquareMatrix.hpp"
+#include "DiagonalMatrix.hpp"
+#include "TriangularMatrix.hpp"
 #include "LinearSystemSolvers.hpp"
 
 void ClearInput()
@@ -104,6 +106,36 @@ void FillGeneratedValues(Matrix<T>& matrix, T startValue, T step)
     }
 }
 
+template<typename T>
+void FillGeneratedDiagonalValues(DiagonalMatrix<T>& matrix, T startValue, T step)
+{
+    T currentValue = startValue;
+
+    for (int i = 0; i < matrix.GetSize(); ++i)
+    {
+        matrix.Set(i, i, currentValue);
+        currentValue += step;
+    }
+}
+
+template<typename T>
+void FillGeneratedTriangularValues(TriangularMatrix<T>& matrix, T startValue, T step)
+{
+    T currentValue = startValue;
+
+    for (int i = 0; i < matrix.GetSize(); ++i)
+    {
+        int firstColumn = matrix.GetType() == TriangularType::Upper ? i : 0;
+        int lastColumn = matrix.GetType() == TriangularType::Upper ? matrix.GetSize() - 1 : i;
+
+        for (int j = firstColumn; j <= lastColumn; ++j)
+        {
+            matrix.Set(i, j, currentValue);
+            currentValue += step;
+        }
+    }
+}
+
 void PrintDoubleVector(const std::string& name, const Sequence<double>& vector)
 {
     std::cout << name << ": [";
@@ -145,7 +177,7 @@ void PrintDoubleMatrix(const std::string& name, const Matrix<double>& matrix)
 
 Matrix<int>* CreateManualMatrix()
 {
-    int type = ReadInt("Matrix type (1 = rectangular, 2 = square): ");
+    int type = ReadInt("Matrix type (1 = rectangular, 2 = square, 3 = diagonal, 4 = upper triangular, 5 = lower triangular): ");
 
     if (type == 1)
     {
@@ -182,12 +214,47 @@ Matrix<int>* CreateManualMatrix()
         return matrix;
     }
 
+    if (type == 3)
+    {
+        int size = ReadInt("Size: ");
+
+        DiagonalMatrix<int>* matrix = new DiagonalMatrix<int>(size, 0);
+
+        for (int i = 0; i < size; ++i)
+        {
+            matrix->Set(i, i, ReadInt("value[" + std::to_string(i) + "][" + std::to_string(i) + "]: "));
+        }
+
+        return matrix;
+    }
+
+    if (type == 4 || type == 5)
+    {
+        int size = ReadInt("Size: ");
+        TriangularType triangularType = type == 4 ? TriangularType::Upper : TriangularType::Lower;
+
+        TriangularMatrix<int>* matrix = new TriangularMatrix<int>(size, triangularType, 0);
+
+        for (int i = 0; i < size; ++i)
+        {
+            int firstColumn = triangularType == TriangularType::Upper ? i : 0;
+            int lastColumn = triangularType == TriangularType::Upper ? size - 1 : i;
+
+            for (int j = firstColumn; j <= lastColumn; ++j)
+            {
+                matrix->Set(i, j, ReadInt("value[" + std::to_string(i) + "][" + std::to_string(j) + "]: "));
+            }
+        }
+
+        return matrix;
+    }
+
     throw std::invalid_argument("Unknown matrix type");
 }
 
 Matrix<int>* CreateGeneratedMatrix()
 {
-    int type = ReadInt("Matrix type (1 = rectangular, 2 = square): ");
+    int type = ReadInt("Matrix type (1 = rectangular, 2 = square, 3 = diagonal, 4 = upper triangular, 5 = lower triangular): ");
     int startValue = ReadInt("Start value: ");
     int step = ReadInt("Step: ");
 
@@ -210,6 +277,25 @@ Matrix<int>* CreateGeneratedMatrix()
         return matrix;
     }
 
+    if (type == 3)
+    {
+        int size = ReadInt("Size: ");
+
+        DiagonalMatrix<int>* matrix = new DiagonalMatrix<int>(size, 0);
+        FillGeneratedDiagonalValues(*matrix, startValue, step);
+        return matrix;
+    }
+
+    if (type == 4 || type == 5)
+    {
+        int size = ReadInt("Size: ");
+        TriangularType triangularType = type == 4 ? TriangularType::Upper : TriangularType::Lower;
+
+        TriangularMatrix<int>* matrix = new TriangularMatrix<int>(size, triangularType, 0);
+        FillGeneratedTriangularValues(*matrix, startValue, step);
+        return matrix;
+    }
+
     throw std::invalid_argument("Unknown matrix type");
 }
 
@@ -223,10 +309,26 @@ void PrintMatrix(const std::string& name, const Matrix<int>* matrix)
         return;
     }
 
-    const SquareMatrix<int>* squareMatrix = dynamic_cast<const SquareMatrix<int>*>(matrix); // а объект, на который указывает matrix, реально является SquareMatrix<int>? или это прямоугольная ?
+    const DiagonalMatrix<int>* diagonalMatrix = dynamic_cast<const DiagonalMatrix<int>*>(matrix);
+    const TriangularMatrix<int>* triangularMatrix = dynamic_cast<const TriangularMatrix<int>*>(matrix);
+    const SquareMatrix<int>* squareMatrix = dynamic_cast<const SquareMatrix<int>*>(matrix);
 
-
-    if (squareMatrix != nullptr)
+    if (diagonalMatrix != nullptr)
+    {
+        std::cout << "DiagonalMatrix<int> ";
+    }
+    else if (triangularMatrix != nullptr)
+    {
+        if (triangularMatrix->GetType() == TriangularType::Upper)
+        {
+            std::cout << "UpperTriangularMatrix<int> ";
+        }
+        else
+        {
+            std::cout << "LowerTriangularMatrix<int> ";
+        }
+    }
+    else if (squareMatrix != nullptr)
     {
         std::cout << "SquareMatrix<int> ";
     }

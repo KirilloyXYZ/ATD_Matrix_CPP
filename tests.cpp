@@ -217,6 +217,8 @@ int main()
     TestRectangularMatrixOperations();
     TestRectangularMatrixRowAndColumnOperations();
     TestSquareMatrix();
+    TestDiagonalMatrix();
+    TestTriangularMatrix();
     TestMatrixErrors();
 
     TestGaussSolvers();
